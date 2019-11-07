@@ -1,3 +1,5 @@
+import java.io.*;
+import java.net.*;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -14,6 +16,26 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class FTPHost extends Application {
+	
+	TextField hostNameText = new TextField();
+    TextField portText = new TextField();
+    
+    TextField userNameText = new TextField();
+    TextField hostNameText2 = new TextField();
+    TextField speedText = new TextField();
+    
+    TextField fileNameText = new TextField();
+    TextField fileDescriptionText = new TextField();
+    
+    String serverName;
+    int port1;
+    boolean isOpen = true;
+    boolean clientgo = true;
+    boolean notEnd = true;
+    
+    
+    TextField commandText = new TextField();
+    TextArea resultsTextArea = new TextArea(); 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -21,27 +43,18 @@ public class FTPHost extends Application {
         primaryStage.setTitle("GV-P2P");
         primaryStage.initStyle(StageStyle.DECORATED);
         
+        
+    	
         Scene scene = new Scene (new Group(), 500, 250, Color.SKYBLUE);
 
-        TextField hostNameText = new TextField();
-        TextField portText = new TextField();
-        
-        TextField userNameText = new TextField();
-        TextField hostNameText2 = new TextField();
-        TextField speedText = new TextField();
-        
-        TextField fileNameText = new TextField();
-        TextField fileDescriptionText = new TextField();
-        
-        
-        TextField commandText = new TextField();
-        TextArea resultsTextArea = new TextArea(); 
         
       Button connectButton = new Button("Connect");
       Button sendButton = new Button("Send to Server");
       Button uploadButton = new Button ("Upload to Server");
       Button runCommandButton = new Button ("Run");
       
+
+        
         hostNameText.setText("148.61.112.49");
         portText.setText("6531");
         userNameText.setText("vinay");
@@ -90,9 +103,117 @@ public class FTPHost extends Application {
         primaryStage.setScene(scene);
 
         primaryStage.show();
+
+    
+    connectButton.setOnAction(this::handleConnectAction);
+    sendButton.setOnAction(this::sendToServerAction);
+    uploadButton.setOnAction(this::uploadToServerAction);
+    runCommandButton.setOnAction(this::runAction);
+    
+    
     }
+    
+    public void handleConnectAction(ActionEvent event){
+    	serverName = hostNameText.getText();
+    	port1 = Integer.parseInt(portText.getText());
+    	notEnd = true;
+    	
+    	
+        resultsTextArea.setText("You are connected to " + serverName);
+        
+	}
+    
+    public void sendToServerAction(ActionEvent event) {
+    	try {
+            Socket ControlSocket = new Socket(serverName, port1);
+            
+            DataOutputStream outToServer = new DataOutputStream(
+                    ControlSocket.getOutputStream());
+
+            DataInputStream inFromServer = new DataInputStream(
+                    new BufferedInputStream(ControlSocket.getInputStream()));
+            
+            String userName = userNameText.getText();
+            String hostName = hostNameText2.getText();
+        	
+            // SEND USERNAME AND HOSTNAME TO SERVER
+            
+    	
+    	
+    	
+    	
+    	
+            resultsTextArea.setText("You're username and hostname has been saved successfully to the server");
+    	}
+        	catch(Exception e) {
+        		resultsTextArea.setText("Something went wrong");
+        	}
+                 
+    }
+
+    public void uploadToServerAction(ActionEvent event) {
+    	
+    	try {
+    	Socket ControlSocket = new Socket(serverName, port1);
+        
+        DataOutputStream outToServer = new DataOutputStream(
+                ControlSocket.getOutputStream());
+
+        DataInputStream inFromServer = new DataInputStream(
+                new BufferedInputStream(ControlSocket.getInputStream()));
+        
+        String fileName = fileNameText.getText();
+        String fileDescription = fileDescriptionText.getText();
+        String speed = speedText.getText();
+    	
+        // UPLOAD FILE NAME, FILE DESCRIPTION AND SPEED TO SERVER
+       // Note: it should prompt for speedlink e.g Ethernet if it is the textfield is blank.
+        
+	
+	
+	
+	
+	
+        resultsTextArea.setText("You're filename, file description and speed has been saved successfully to the server ");
+	}
+    	catch(Exception e) {
+    		resultsTextArea.setText("Something went wrong");
+    	}
+    }
+    
+    public void runAction(ActionEvent event) {
+    	if (commandText.getText() == "quit" || commandText.getText() == "disconnect" ) {
+    		
+    		try {
+    	    	Socket ControlSocket = new Socket(serverName, port1);
+    	        
+    	        DataOutputStream outToServer = new DataOutputStream(
+    	                ControlSocket.getOutputStream());
+
+    	        DataInputStream inFromServer = new DataInputStream(
+    	                new BufferedInputStream(ControlSocket.getInputStream()));
+    	        	
+    		 int port = port1 + 2;
+             outToServer.writeBytes(port + " " + commandText.getText() + " " + '\n');
+             
+             
+             isOpen = false;
+             clientgo = false;
+             ControlSocket.close();
+             resultsTextArea.setText("You have been disconnected from the server");
+    		}
+    		
+             catch(Exception e) {
+         		resultsTextArea.setText("Something went wrong");
+         	}
+    	}
+    }
+	
 
     public static void main(String[] args) {
         Application.launch(args);
+  
     }
+    
+    
 }
