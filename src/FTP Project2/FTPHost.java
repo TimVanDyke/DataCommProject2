@@ -42,7 +42,7 @@ public class FTPHost extends Application {
                 primaryStage.setTitle("GV-P2P");
                 primaryStage.initStyle(StageStyle.DECORATED);
 
-                Scene scene = new Scene(new Group(), 500, 250, Color.SKYBLUE);
+                Scene scene = new Scene(new Group(), 1200, 350, Color.SKYBLUE);
 
                 Button connectButton = new Button("Connect");
                 Button sendButton = new Button("Send to Server");
