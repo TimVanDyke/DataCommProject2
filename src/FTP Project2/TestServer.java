@@ -11,6 +11,7 @@ public class TestServer {
             ServerWorkerThread workerThread = new ServerWorkerThread(welcomeSocket.accept());
             Thread thread = new Thread(workerThread);
             thread.start();
+            System.out.println("New connection");
         }
     }
 }
