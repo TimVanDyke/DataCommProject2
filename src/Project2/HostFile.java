@@ -10,4 +10,8 @@ public class HostFile {
         this.user = user;
         this.keywords = keywords;
     }
+
+    public HostFile(){
+
+    }
 }

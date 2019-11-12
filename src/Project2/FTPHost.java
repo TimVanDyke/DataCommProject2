@@ -18,7 +18,7 @@ import javafx.stage.StageStyle;
 
 public class FTPHost extends Application {
 
-    ArrayList<HostFile> ourFiles = new ArrayList <HostFile> ();
+    ArrayList<HostFile> ourFiles = new ArrayList<HostFile>();
     boolean connected;
 
     TextField hostNameText = new TextField();
@@ -31,7 +31,7 @@ public class FTPHost extends Application {
     TextField fileNameText = new TextField();
     TextField fileDescriptionText = new TextField();
 
-    String serverName;
+    String hostName;
     int port1;
     boolean isOpen = true;
     boolean clientgo = true;
@@ -59,7 +59,7 @@ public class FTPHost extends Application {
         hostNameText2.setText("DCCLIENT/localhost");
         speedText.setText("Ethernet");
         fileNameText.setText("test1.txt");
-        fileDescriptionText.setText("pretty, beautiful, happy, place");
+        fileDescriptionText.setText("pretty beautiful happy place");
 
         GridPane grid = new GridPane();
         grid.setVgap(5);
@@ -108,30 +108,34 @@ public class FTPHost extends Application {
     }
 
     public void handleConnectAction(ActionEvent event) {
-        serverName = hostNameText.getText();
-        port1 = Integer.parseInt(portText.getText());
-        notEnd = true;
-
-        resultsTextArea.setText("You are connected to " + serverName);
-
+        try {
+            hostName = hostNameText.getText();
+            port1 = Integer.parseInt(portText.getText());
+            notEnd = true;
+            Socket ControlSocket = new Socket(hostName, port1);
+            DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
+            // DataInputStream inFromServer = new DataInputStream(new
+            // BufferedInputStream(ControlSocket.getInputStream()));
+            // send username to server
+            outToServer.writeBytes(userNameText.getText() + " " + port1 + " " + hostName + " " + speedText.getText()
+                    + " " + "connect" + "\n");
+            resultsTextArea.setText("You are connected to " + hostName);
+            ControlSocket.close();
+        } catch (Exception e) {
+            resultsTextArea.setText("Something went wrong");
+        }
     }
 
     public void sendToServerAction(ActionEvent event) {
         try {
-            Socket ControlSocket = new Socket(serverName, port1);
-
+            Socket ControlSocket = new Socket(hostName, port1);
             DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
-
             DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
-
-            String userName = userNameText.getText();
-            String hostName = hostNameText2.getText();
-
             // SEND USERNAME AND HOSTNAME TO SERVER
-            outToServer.writeUTF(userName);
-            outToServer.writeUTF(hostName);
-
+            outToServer.writeBytes(userNameText.getText() + " " + port1 + " " + hostName + " " + speedText.getText()
+                    + " " + "connect" + "\n");
             resultsTextArea.setText("Your username and hostname has been saved successfully to the server");
+            ControlSocket.close();
         } catch (Exception e) {
             resultsTextArea.setText("Something went wrong");
         }
@@ -141,20 +145,25 @@ public class FTPHost extends Application {
     public void uploadToServerAction(ActionEvent event) {
 
         try {
-            Socket ControlSocket = new Socket(serverName, port1);
-
+            Socket ControlSocket = new Socket(hostName, port1);
             DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
-
-            DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
-
-            String fileName = fileNameText.getText();
-            String fileDescription = fileDescriptionText.getText();
-            String speed = speedText.getText();
-
-            // UPLOAD FILE NAME, FILE DESCRIPTION AND SPEED TO SERVER
+            ObjectOutputStream outFile = new ObjectOutputStream(ControlSocket.getOutputStream());
+            ArrayList<String> fileDescription = new ArrayList<String>();
+            String s = "";
+            String description = fileDescriptionText.getText();
+            String delims = "[ ]";
+            String[] tokens = description.split(delims);
+            for (int i = 0; i < tokens.length; i++) {
+                //fileDescription.add(tokens[i]);
+                s += " " + tokens[i];
+            }
+            HostFile payload = new HostFile(fileNameText.getText(), hostNameText2.getText(), fileDescription);
+            outToServer.writeBytes(userNameText.getText() + " " + port1 + " " + hostName + " " + speedText.getText()
+                    + " " + "upload" + s + " " + fileNameText.getText() + "\n");
+            //outFile.writeObject(payload);
+            
             // Note: it should prompt for speedlink e.g Ethernet if it is the textfield is
             // blank.
-
             resultsTextArea
                     .setText("Your filename, file description and speed has been saved successfully to the server ");
             ControlSocket.close();
@@ -164,37 +173,38 @@ public class FTPHost extends Application {
     }
 
     public void runAction(ActionEvent event) {
-        if (commandText.getText() == "quit" || commandText.getText() == "disconnect") {
+        if (commandText.getText().equals("quit")) {
 
             try {
-                Socket ControlSocket = new Socket(serverName, port1);
-
+                int port = port1 + 2;
+                Socket ControlSocket = new Socket(hostName, port1);
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
-
                 DataInputStream inFromServer = new DataInputStream(
                         new BufferedInputStream(ControlSocket.getInputStream()));
-
-                int port = port1 + 2;
-                outToServer.writeBytes(port + " " + commandText.getText() + " " + '\n');
+                
+                outToServer.writeBytes(userNameText.getText() + " " + port1 + " " + hostName + " " + speedText.getText()
+                        + " " + "quit" + "\n");
 
                 isOpen = false;
                 clientgo = false;
                 ControlSocket.close();
                 resultsTextArea.setText("You have been disconnected from the server");
+
             }
 
             catch (Exception e) {
                 resultsTextArea.setText("Something went wrong");
             }
         }
-        if (commandText.getText() == "retr") {
+        if (commandText.getText().equals("retr")) {
             try {
                 int port = port1 + 2;
                 ServerSocket welcomeData = new ServerSocket(port);
                 Socket dataSocket = welcomeData.accept();
                 DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
                 DataOutputStream outData = new DataOutputStream(dataSocket.getOutputStream());
-                outToServer.writeBytes(port + " " + commandText.getText() + " " + '\n');
+                outData.writeBytes(userNameText.getText() + " " + port1 + " " + hostName + " " + speedText.getText()
+                        + " " + "retr" + "\n");
                 // Parse filename from command, send it to server
                 String fileName = fileNameText.getText();
                 outData.writeUTF(fileName);
@@ -223,15 +233,55 @@ public class FTPHost extends Application {
                 resultsTextArea.setText("Something went wrong");
             }
         }
+
+        if (commandText.getText().equals("search")) {
+            try {
+                int port = port1 + 2;
+                ServerSocket welcomeData = new ServerSocket(port);
+                Socket dataSocket = welcomeData.accept();
+                Socket ControlSocket = new Socket(hostName, port1);
+                DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
+                DataInputStream inFromServer = new DataInputStream(
+                        new BufferedInputStream(ControlSocket.getInputStream()));
+                notEnd = true;
+                String results;
+                String resultText = "";
+                outToServer.writeBytes(userNameText.getText() + " " + port1 + " " + hostName + " " + speedText.getText()
+                        + " " + "search" + "\n");
+                // Server will send 'eof' when it is done sending files
+                while (notEnd) {
+                    results = inFromServer.readUTF();
+                    if (results.compareTo("eof") == 0) {
+                        notEnd = false;
+                    } else {
+                        System.out.println(results);
+                        resultText += results + "\n";
+                    }
+                }
+                resultsTextArea.setText(resultText);
+                welcomeData.close();
+                dataSocket.close();
+                inFromServer.close();
+                outToServer.close();
+                ControlSocket.close();
+            } catch (Exception e) {
+
+            }
+        }
+
     }
 
-    //build a file
-    private void buildFile(){
+    // build a file
+    private void buildFile() {
 
     }
 
-    //send server info
-    private void userRegister(){
+    // send server info
+    private void userRegister() {
+
+    }
+
+    private void search() {
 
     }
 
