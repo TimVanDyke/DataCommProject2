@@ -8,9 +8,11 @@ public class ServerWorkerThread implements Runnable {
     String clientCommand;
     byte[] data;
     String frstln;
+    ArrayList<String> connections;
 
-    ServerWorkerThread(Socket connectionSocket) {
+    ServerWorkerThread(Socket connectionSocket, ArrayList<String> connections) {
         this.connectionSocket = connectionSocket;
+        this.connections = ArrayList<String> connections;
     }
 
     public void run() throws RuntimeException {

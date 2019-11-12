@@ -124,6 +124,8 @@ public class FTPHost extends Application {
             String hostName = hostNameText2.getText();
 
             // SEND USERNAME AND HOSTNAME TO SERVER
+            outToServer.writeUTF(userName);
+            outToServer.writeUTF(hostName);
 
             resultsTextArea.setText("You're username and hostname has been saved successfully to the server");
         } catch (Exception e) {
@@ -151,6 +153,7 @@ public class FTPHost extends Application {
 
             resultsTextArea
                     .setText("You're filename, file description and speed has been saved successfully to the server ");
+            ControlSocket.close();
         } catch (Exception e) {
             resultsTextArea.setText("Something went wrong");
         }
@@ -177,6 +180,42 @@ public class FTPHost extends Application {
             }
 
             catch (Exception e) {
+                resultsTextArea.setText("Something went wrong");
+            }
+        }
+        if (commandText.getText() == "retr") {
+            try {
+                int port = port1 + 2;
+                outToServer.writeBytes(port + " " + commandText.getText() + " " + '\n');
+                ServerSocket welcomeData = new ServerSocket(port);
+                Socket dataSocket = welcomeData.accept();
+                DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
+                DataOutputStream outData = new DataOutputStream(dataSocket.getOutputStream());
+                // Parse filename from command, send it to server
+                String fileName = fileNameText.getText();
+                outData.writeUTF(fileName);
+                boolean fileExists = (inData.readUTF().compareTo("200") == 0);
+                // Check file exists
+                if (fileExists) {
+                    // Receive file
+                    // FIXME make sure filepath is correct!
+                    OutputStream fileOut = new FileOutputStream("../client_data/" + fileName);
+                    byte[] bytes = new byte[16 * 1024];
+                    int count;
+                    while ((count = inData.read(bytes)) > 0) {
+                        fileOut.write(bytes, 0, count);
+                    }
+                    fileOut.close();
+                }
+                // If file does not exist, print error.
+                else {
+                    System.out.println("File " + fileName + " not found.");
+                    welcomeData.close();
+                    dataSocket.close();
+                    outData.close();
+                    inData.close();
+                }
+            } catch (Exception e) {
                 resultsTextArea.setText("Something went wrong");
             }
         }
