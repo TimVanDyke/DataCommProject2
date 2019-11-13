@@ -127,6 +127,34 @@ public class FTPHost extends Application {
             outToServer.flush();
             commandResultsTextArea.setText("You are connected to " + hostName);
             connected = true;
+
+
+            //TODO: TEST FILE UPLOAD
+
+            // filename to store
+            String fileName = hostName + ".xml";
+            File toStore = new File("./"+fileName);
+
+            outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + hostName + " " + speedChoice.getValue().toString()
+                    + " " + "upload" + hostName + ".xml" + "\n");
+            // Check that it is a file
+            if(toStore.isFile()) {
+                // Find file length
+                long length = toStore.length();
+                byte[] bytes = new byte[16 * 1024];
+
+                // Instantiate file and output sockets
+                InputStream in = new FileInputStream(toStore);
+                OutputStream out = ControlSocket.getOutputStream();
+
+                // Write bytes from file to output
+                int count;
+                while ((count = in.read(bytes)) > 0) {
+                    out.write(bytes, 0, count);
+                }
+                out.close();
+                in.close();
+            }
             ControlSocket.close();
         } catch (Exception e) {
             commandResultsTextArea.setText("Something went wrong");
