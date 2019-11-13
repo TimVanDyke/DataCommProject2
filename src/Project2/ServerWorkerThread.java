@@ -12,7 +12,7 @@ public class ServerWorkerThread implements Runnable {
     String username;
     String host;
     String speed;
-    ArrayList<String> searchResults;
+    ArrayList<String> searchResults = new ArrayList<String>();
 
     ServerWorkerThread(Socket connectionSocket, ArrayList<HostConnection> listHosts) {
         this.connectionSocket = connectionSocket;
@@ -40,15 +40,21 @@ public class ServerWorkerThread implements Runnable {
 
                 // add this connection if not in list already
                 HostConnection c = new HostConnection(username, host, speed);
-                if (!listHosts.contains(c)) {
+                boolean hostHereAlready = false;
+                for (int i = 0; i < listHosts.size(); i++) {
+                    if (listHosts.get(i).hostname.equals(c.hostname)) {
+                        hostHereAlready = true;
+                    }
+                }
+                if (!hostHereAlready) {
                     listHosts.add(c);
                 }
 
                 // Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
                 if (clientCommand.equals("search")) {
+                    String searchWord = tokens.nextToken();
                     Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
                     DataOutputStream outWord = new DataOutputStream(dataSocket.getOutputStream());
-                    String searchWord = tokens.nextToken();
                     searchResults.clear();
                     for (int i = 0; i < listHosts.size(); i++) {
                         for (int j = 0; j < listHosts.get(i).fileList.size(); j++) {
@@ -59,9 +65,19 @@ public class ServerWorkerThread implements Runnable {
                             }
                         }
                     }
-                    for (int a = 0; a < searchResults.size(); a++) {
-                        outWord.writeUTF(searchResults.get(a));
+                    System.out.println("Before WriteUTF");
+                    if (searchResults.size() > 0) {
+                        for (int i = 0; i < searchResults.size(); i++) {
+                            outWord.writeUTF(searchResults.get(i));
+                            outWord.flush();
+                        }
                     }
+                    else {
+                        //System.out.println("Sorry there are no files with that keyword");
+                        outWord.writeBytes("NoFiles");
+                        outWord.flush();
+                    }
+                    System.out.println("After WriteUTF");
                     dataSocket.close();
                 }
                 if (clientCommand.equals("quit")) {
@@ -76,7 +92,7 @@ public class ServerWorkerThread implements Runnable {
                     outToClient.close();
                     inFromClient.close();
                     dataSocket.close();
-                    System.out.println("hi");
+                    System.out.println("bye");
                 }
 
                 if (clientCommand.equals("upload")) {
