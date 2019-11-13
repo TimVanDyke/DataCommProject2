@@ -13,6 +13,7 @@ public class ServerWorkerThread implements Runnable {
     String host;
     String speed;
     ArrayList<String> searchResults = new ArrayList<String>();
+    boolean threadNotDone = true;
 
     ServerWorkerThread(Socket connectionSocket, ArrayList<HostConnection> listHosts) {
         this.connectionSocket = connectionSocket;
@@ -20,6 +21,7 @@ public class ServerWorkerThread implements Runnable {
     }
 
     public void run() throws RuntimeException {
+        // while (threadNotDone) {
         try {
             DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
@@ -55,7 +57,7 @@ public class ServerWorkerThread implements Runnable {
                 if (clientCommand.equals("search")) {
                     String searchWord = tokens.nextToken();
                     Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-                    DataOutputStream outWord = new DataOutputStream(dataSocket.getOutputStream());
+                    //DataOutputStream outWord = new DataOutputStream(dataSocket.getOutputStream());
                     searchResults.clear();
                     for (int i = 0; i < listHosts.size(); i++) {
                         for (int j = 0; j < listHosts.get(i).fileList.size(); j++) {
@@ -73,20 +75,20 @@ public class ServerWorkerThread implements Runnable {
                             // outWord.writeUTF(searchResults.get(i));
                             // outWord.flush();
                             result += (searchResults.get(i) + " ");
-                            //System.out.println(result);
-                            outWord.writeBytes(result + "\n");
+                            // System.out.println(result);
+                            outToClient.writeUTF(result + "\n");
                         }
                     } else {
-                        // System.out.println("Sorry there are no files with that keyword");
-                        outWord.writeBytes("NoFiles \n");
-                        outWord.flush();
+                        System.out.println("Sorry there are no files with that keyword");
+                        outToClient.writeUTF("No Files \n");
+                        outToClient.flush();
                     }
                     System.out.println("After WriteUTF");
                     dataSocket.close();
                 }
                 if (clientCommand.equals("quit")) {
                     Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-
+                    threadNotDone = false;
                     for (int i = 0; i < listHosts.size(); i++) {
                         // find connection that has hostname user and delete
                         if (listHosts.get(i).hostname == host) {
@@ -116,7 +118,7 @@ public class ServerWorkerThread implements Runnable {
                         for (int i = 0; i < listHosts.size(); i++) {
                             if (listHosts.get(i).hostname.equals(c.hostname)
                                     && listHosts.get(i).username.equals(c.username)) {
-                                //System.out.println(listHosts.get(i).fileList.size());
+                                // System.out.println(listHosts.get(i).fileList.size());
                                 listHosts.get(i).fileList.add(f);
                                 // System.out.println(listHosts.get(i).fileList.size());
                                 // System.out.println(listHosts.get(i).fileList.get(i).getName());
@@ -134,5 +136,7 @@ public class ServerWorkerThread implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        // }
+        System.out.println("ThreadEnded");
     }
 }
