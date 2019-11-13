@@ -47,6 +47,7 @@ public class ServerWorkerThread implements Runnable {
                     }
                 }
                 if (!hostHereAlready) {
+                    System.out.println("addhost");
                     listHosts.add(c);
                 }
 
@@ -65,16 +66,19 @@ public class ServerWorkerThread implements Runnable {
                             }
                         }
                     }
+                    String result = "";
                     System.out.println("Before WriteUTF");
                     if (searchResults.size() > 0) {
                         for (int i = 0; i < searchResults.size(); i++) {
-                            outWord.writeUTF(searchResults.get(i));
-                            outWord.flush();
+                            // outWord.writeUTF(searchResults.get(i));
+                            // outWord.flush();
+                            result += (searchResults.get(i) + " ");
+                            //System.out.println(result);
+                            outWord.writeBytes(result + "\n");
                         }
-                    }
-                    else {
-                        //System.out.println("Sorry there are no files with that keyword");
-                        outWord.writeBytes("NoFiles");
+                    } else {
+                        // System.out.println("Sorry there are no files with that keyword");
+                        outWord.writeBytes("NoFiles \n");
                         outWord.flush();
                     }
                     System.out.println("After WriteUTF");
@@ -86,6 +90,7 @@ public class ServerWorkerThread implements Runnable {
                     for (int i = 0; i < listHosts.size(); i++) {
                         // find connection that has hostname user and delete
                         if (listHosts.get(i).hostname == host) {
+                            System.out.println("removed connection");
                             listHosts.remove(i);
                         }
                     }
@@ -94,29 +99,33 @@ public class ServerWorkerThread implements Runnable {
                     dataSocket.close();
                     System.out.println("bye");
                 }
-
                 if (clientCommand.equals("upload")) {
                     try {
-                        Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-                        ObjectInputStream dataFromClient = new ObjectInputStream(
-                                new BufferedInputStream(dataSocket.getInputStream()));
-
+                        // Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
                         ArrayList<String> fileDescription = new ArrayList<String>();
                         String description = tokens.nextToken();
                         String filename = tokens.nextToken();
-                        String delims = "[ ]";
-                        String[] tokens1 = description.split(delims);
+                        String[] tokens1 = description.split(",");
                         for (int i = 0; i < tokens1.length; i++) {
                             fileDescription.add(tokens1[i]);
                         }
-                        HostFile f = new HostFile(username, filename, fileDescription);
+                        // System.out.println(filename);
+                        // System.out.println(username);
+                        HostFile f = new HostFile(filename, username, fileDescription);
                         // f = (HostFile) dataFromClient.readObject();
                         for (int i = 0; i < listHosts.size(); i++) {
-                            if (listHosts.get(i).equals(c)) {
+                            if (listHosts.get(i).hostname.equals(c.hostname)
+                                    && listHosts.get(i).username.equals(c.username)) {
+                                //System.out.println(listHosts.get(i).fileList.size());
                                 listHosts.get(i).fileList.add(f);
+                                // System.out.println(listHosts.get(i).fileList.size());
+                                // System.out.println(listHosts.get(i).fileList.get(i).getName());
+                                // System.out.println(listHosts.get(i).fileList.get(i).getUser());
+                                System.out.println("File uploaded");
                             }
                         }
-                        dataSocket.close();
+
+                        // dataSocket.close();
                     } catch (Exception e) {
 
                     }

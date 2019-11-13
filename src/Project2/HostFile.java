@@ -14,4 +14,13 @@ public class HostFile {
     public HostFile(){
 
     }
+    public String getName(){
+        return name;
+    }
+    public String getUser(){
+        return user;
+    }
+    public ArrayList<String> getKeywords(){
+        return keywords;
+    }
 }
