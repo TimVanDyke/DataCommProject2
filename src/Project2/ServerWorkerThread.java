@@ -58,7 +58,6 @@ public class ServerWorkerThread implements Runnable {
                     }
                 }
                 if (!hostHereAlready) {
-                    System.out.println("addhost");
                     listHosts.add(c);
                 }
 
@@ -108,7 +107,6 @@ public class ServerWorkerThread implements Runnable {
                     outToClient.close();
                     inFromClient.close();
                     dataSocket.close();
-                    System.out.println("bye");
                 }
                 if (clientCommand.equals("upload")) {
                     try {
