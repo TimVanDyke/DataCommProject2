@@ -16,21 +16,20 @@ public class ServerWorkerThread implements Runnable {
     String clientCommand;
     byte[] data;
     String frstln;
-    ArrayList<HostConnection> listHosts;
     String username;
     String host;
     String speed;
+    ArrayList<HostConnection> listHosts;
+    ArrayList<HostFile> fileList;
     ArrayList<String> searchResults = new ArrayList<String>();
-    boolean threadNotDone = true;
-    ArrayList<HostFile> listfiles = new ArrayList<HostFile>();
 
-    ServerWorkerThread(Socket connectionSocket, ArrayList<HostConnection> listHosts) {
+    ServerWorkerThread(Socket connectionSocket, ArrayList<HostConnection> listHosts, ArrayList<HostFile> fileList) {
         this.connectionSocket = connectionSocket;
         this.listHosts = listHosts;
+        this.fileList = fileList;
     }
 
     public void run() throws RuntimeException {
-        // while (threadNotDone) {
         try {
             DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
@@ -64,6 +63,7 @@ public class ServerWorkerThread implements Runnable {
                 // Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
                 if (clientCommand.equals("search")) {
                     String searchWord = tokens.nextToken();
+                    System.out.println(searchWord);
                     Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
                     //DataOutputStream outWord = new DataOutputStream(dataSocket.getOutputStream());
                     searchResults.clear();
@@ -96,7 +96,6 @@ public class ServerWorkerThread implements Runnable {
                 }
                 if (clientCommand.equals("quit")) {
                     Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-                    threadNotDone = false;
                     for (int i = 0; i < listHosts.size(); i++) {
                         // find connection that has hostname user and delete
                         if (listHosts.get(i).hostname == host) {
@@ -173,7 +172,7 @@ public class ServerWorkerThread implements Runnable {
                                 
                                 //Create file object
                                 HostFile file = new HostFile(name, username, fileDescArrLst);
-                                listfiles.add(file);
+                                fileList.add(file);
                                 System.out.println("file uploaded");
                                 System.out.println(file.getName());
                                 //If files are new to server, add to file list
@@ -224,7 +223,6 @@ public class ServerWorkerThread implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // }
         System.out.println("ThreadEnded");
     }
 }

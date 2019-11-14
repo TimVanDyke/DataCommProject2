@@ -60,79 +60,7 @@ public class FTPHost extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        serverHostNameTextField.setText("localhost");
-        portTextField.setText("12000");
-        userNameTextField.setText("vinay");
-        hostNameTextField.setText("DCCLIENT/localhost");
-
-        speedChoice.getItems().add("Ethernet");
-        speedChoice.getItems().add("T1");
-        speedChoice.valueProperty().set("Ethernet");
-
-        primaryStage.setTitle("GV-P2P");
-        primaryStage.initStyle(StageStyle.DECORATED);
-
-        grid.setVgap(5);
-        grid.setHgap(10);
-        grid.setPadding(new Insets(5, 5, 5, 5));
-
-        grid.add(serverHostNameLabel, 0, 0);
-        grid.add(serverHostNameTextField, 1, 0);
-        grid.add(userNameLabel, 2, 0);
-        grid.add(userNameTextField, 3, 0);
-
-        grid.add(portLabel, 0, 1);
-        grid.add(portTextField, 1, 1);
-        grid.add(hostNameLabel, 2, 1);
-        grid.add(hostNameTextField, 3, 1);
-
-        grid.add(connectButton, 1, 2);
-        grid.add(speedLabel, 2, 2);
-        grid.add(speedChoice, 3, 2);
-
-        grid.add(searchLabel, 0, 3);
-        grid.add(searchTextField, 1, 3);
-        grid.add(searchButton, 2, 3);
-        grid.add(searchResultsTextArea, 3, 3);
-
-        grid.add(commandLabel, 0, 4);
-        grid.add(commandTextField, 1, 4);
-        grid.add(runCommandButton, 2, 4);
-        grid.add(commandResultsTextArea, 3, 4);
-
-        root.getChildren().add(grid);
-        primaryStage.setScene(scene);
-        primaryStage.show();
-
-        connectButton.setOnAction(this::handleConnectAction);
-        runCommandButton.setOnAction(this::runAction);
-        searchButton.setOnAction(this::search);
-
-    }
-
-    public void search(ActionEvent event) {
-        System.out.println("searching");
-        try {
-            // StringTokenizer tokens = new StringTokenizer(searchTextField.getText());
-            hostName = serverHostNameTextField.getText();
-            port1 = Integer.parseInt(portTextField.getText());
-            String searchWord = searchTextField.getText();
-            Socket ControlSocket = new Socket(hostName, port1);
-            DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
-            DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
-            outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + hostName + " "
-                    + speedChoice.getValue().toString() + " " + "search" + " " + searchWord + "\n");
-            StringBuilder results = new StringBuilder(300);
-            while (inFromServer.available() > 0) {
-                results.append(inFromServer.readUTF());
-                searchResultsTextArea.setText(results.toString());
-                System.out.println(results.toString());
-            }
-            commandResultsTextArea.setText("Search successful");
-            ControlSocket.close();
-        } catch (Exception e) {
-            commandResultsTextArea.setText("Something went wrong");
-        }
+        initVars(primaryStage);
     }
 
     public void handleConnectAction(ActionEvent event) {
@@ -143,13 +71,7 @@ public class FTPHost extends Application {
             notEnd = true;
             Socket ControlSocket = new Socket(hostName, port1);
             DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
-            // DataInputStream inFromServer = new DataInputStream(new
-            // BufferedInputStream(ControlSocket.getInputStream()));
-            // send username to server
-            // outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " +
-            // hostName + " "
-            // + speedChoice.getValue().toString() + " " + "connect" + "\n");
-            // outToServer.flush();
+
             commandResultsTextArea.setText("You are connected to " + hostName);
 
             // filename to store
@@ -183,51 +105,25 @@ public class FTPHost extends Application {
         }
     }
 
-    public void sendToServerAction(ActionEvent event) {
+    public void search(ActionEvent event) {
+        System.out.println("searching");
         try {
-
+            // StringTokenizer tokens = new StringTokenizer(searchTextField.getText());
+            hostName = serverHostNameTextField.getText();
+            port1 = Integer.parseInt(portTextField.getText());
+            String searchWord = searchTextField.getText();
             Socket ControlSocket = new Socket(hostName, port1);
             DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
             DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
-            // SEND USERNAME AND HOSTNAME TO SERVER
             outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + hostName + " "
-                    + (String) speedChoice.getValue() + " " + "connect" + "\n");
-            commandResultsTextArea.setText("Your username and hostname has been saved successfully to the server");
-            ControlSocket.close();
-        } catch (Exception e) {
-            commandResultsTextArea.setText("Something went wrong");
-        }
-
-    }
-
-    public void uploadToServerAction(ActionEvent event) {
-
-        try {
-            Socket ControlSocket = new Socket(hostName, port1);
-            DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
-            ObjectOutputStream outFile = new ObjectOutputStream(ControlSocket.getOutputStream());
-            ArrayList<String> fileDescription = new ArrayList<String>();
-            String s = "";
-            String description = "FIXME REMOVE THIS ";
-            String delims = "[ ]";
-            String[] tokens = description.split(delims);
-            for (int i = 0; i < tokens.length; i++) {
-                // fileDescription.add(tokens[i]);
-                s += " " + tokens[i];
+                    + speedChoice.getValue().toString() + " " + "search" + " " + searchWord + "\n");
+            StringBuilder results = new StringBuilder(300);
+            while (inFromServer.available() > 0) {
+                results.append(inFromServer.readUTF());
+                searchResultsTextArea.setText(results.toString());
+                System.out.println(results.toString());
             }
-            outToServer.flush();
-            // HostFile payload = new HostFile(fileNameText.getText(),
-            // hostNameText2.getText(), fileDescription);
-            String str = userNameTextField.getText();
-            System.out.print(str);
-            outToServer.writeBytes(str + " " + port1 + " " + hostName + " " + (String) speedChoice.getValue() + " "
-                    + "upload" + s + " " + "FIXME THIS NEEDS TO BE REMOVED (Was filenametextfield)" + "\n");
-            // outFile.writeObject(payload);
-
-            // Note: it should prompt for speedlink e.g Ethernet if it is the textfield is
-            // blank.
-            commandResultsTextArea
-                    .setText("Your filename, file description and speed has been saved successfully to the server ");
+            commandResultsTextArea.setText("Search successful");
             ControlSocket.close();
         } catch (Exception e) {
             commandResultsTextArea.setText("Something went wrong");
@@ -296,60 +192,60 @@ public class FTPHost extends Application {
                 commandResultsTextArea.setText("Something went wrong");
             }
         }
-
-        if (commandTextField.getText().contains("search")) {
-            // if (connected) {
-            try {
-                StringTokenizer tokens = new StringTokenizer(commandTextField.getText());
-                String searchWord = tokens.nextToken();
-                searchWord = tokens.nextToken();
-                int port = port1 + 2;
-                // ServerSocket welcomeData = new ServerSocket(port);
-                // Socket dataSocket = welcomeData.accept();
-                Socket ControlSocket = new Socket(hostName, port1);
-                DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
-                DataInputStream inFromServer = new DataInputStream(
-                        new BufferedInputStream(ControlSocket.getInputStream()));
-                // notEnd = true;
-                StringBuilder results = new StringBuilder(300);
-                // String resultText = "";
-                System.out.println(userNameTextField.getText() + " " + port1 + " " + hostName + " "
-                        + (String) speedChoice.getValue() + " " + "search " + searchWord + "\n");
-                outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + hostName + " "
-                        + (String) speedChoice.getValue() + " " + "search " + searchWord + "\n");
-                while (inFromServer.available() > 0) {
-                    results.append(inFromServer.readUTF());
-                    System.out.println(results.toString());
-                }
-                // Server will send 'eof' when it is done sending files
-                // while (notEnd) {
-                // if (inFromServer.readUTF().endsWith("eof")) {
-                // notEnd = false;
-                // }
-                // else {
-                // results = inFromServer.readUTF();
-                // resultText += results + "\n";
-                // }
-                // }
-                results.append(" " + "\n");
-                searchResultsTextArea.setText(results.toString());
-                System.out.println(results);
-                String resultText = results.toString();
-                //welcomeData.close();
-                // dataSocket.close();
-                // inFromServer.close();
-                // outToServer.close();
-                // ControlSocket.close();
-            } catch (Exception e) {
-
-            }
-            // } else {
-            // resultsTextArea.setText("Connect to the server first!"); // }
-        }
     }
+
     public static void main(String[] args) {
         Application.launch(args);
+    }
 
+    private void initVars(Stage primaryStage) {
+        serverHostNameTextField.setText("localhost");
+        portTextField.setText("12000");
+        userNameTextField.setText("vinay");
+        hostNameTextField.setText("DCCLIENT/localhost");
+
+        speedChoice.getItems().add("Ethernet");
+        speedChoice.getItems().add("T1");
+        speedChoice.valueProperty().set("Ethernet");
+
+        primaryStage.setTitle("GV-P2P");
+        primaryStage.initStyle(StageStyle.DECORATED);
+
+        grid.setVgap(5);
+        grid.setHgap(10);
+        grid.setPadding(new Insets(5, 5, 5, 5));
+
+        grid.add(serverHostNameLabel, 0, 0);
+        grid.add(serverHostNameTextField, 1, 0);
+        grid.add(userNameLabel, 2, 0);
+        grid.add(userNameTextField, 3, 0);
+
+        grid.add(portLabel, 0, 1);
+        grid.add(portTextField, 1, 1);
+        grid.add(hostNameLabel, 2, 1);
+        grid.add(hostNameTextField, 3, 1);
+
+        grid.add(connectButton, 1, 2);
+        grid.add(speedLabel, 2, 2);
+        grid.add(speedChoice, 3, 2);
+
+        grid.add(searchLabel, 0, 3);
+        grid.add(searchTextField, 1, 3);
+        grid.add(searchButton, 2, 3);
+        grid.add(searchResultsTextArea, 3, 3);
+
+        grid.add(commandLabel, 0, 4);
+        grid.add(commandTextField, 1, 4);
+        grid.add(runCommandButton, 2, 4);
+        grid.add(commandResultsTextArea, 3, 4);
+
+        root.getChildren().add(grid);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
+        connectButton.setOnAction(this::handleConnectAction);
+        runCommandButton.setOnAction(this::runAction);
+        searchButton.setOnAction(this::search);
     }
 
 }
