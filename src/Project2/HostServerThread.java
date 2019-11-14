@@ -6,11 +6,13 @@ public class HostServerThread implements Runnable {
     Socket connectionSocket;
     String fromClient;
     String clientCommand;
+    String userName;
     byte[] data;
     String frstln;
 
-    HostServerThread(Socket connectionSocket) {
+    HostServerThread(Socket connectionSocket, String userName) {
         this.connectionSocket = connectionSocket;
+        this.userName = userName;
     }
 
     public void run() throws RuntimeException {
@@ -24,6 +26,10 @@ public class HostServerThread implements Runnable {
             int port = Integer.parseInt(frstln);
             clientCommand = tokens.nextToken();
 
+            if(clientCommand.equals("quit")){
+                //FIXME Do something? Project 1 didn't have anything here for server
+            }
+
             if (clientCommand.equals("retr")) {
 
                 // Instantiate necessary sockets
@@ -34,7 +40,7 @@ public class HostServerThread implements Runnable {
 
                 // Receive file name
                 String fileName = dataFromClient.readUTF();
-                fileName = "../server_data/" + fileName;
+                fileName = "../" + userName + "/" + fileName;
                 File retrieve = new File(fileName);
 
                 // If it is a file, proceed with sending file

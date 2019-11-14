@@ -19,17 +19,18 @@ public class HostServer{
 //        }
 
         public int serverPort;
+        public String userName;
 
-        public HostServer(int serverPort){
+        public HostServer(int serverPort, String userName){
             this.serverPort = serverPort;
+            this.userName = userName;
         }
 
         public void run() throws  IOException {
             ServerSocket welcomeSocket = new ServerSocket(serverPort);
-            while(true){
-                HostServerThread workerThread = new HostServerThread(welcomeSocket.accept());
-                Thread thread = new Thread(workerThread);
-                thread.start();
-            }
+            HostServerThread workerThread = new HostServerThread(welcomeSocket.accept(), userName);
+            Thread thread = new Thread(workerThread);
+            thread.start();
+
         }
     }
