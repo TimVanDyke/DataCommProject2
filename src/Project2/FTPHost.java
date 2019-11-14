@@ -21,19 +21,19 @@ import javafx.stage.StageStyle;
 
 public class FTPHost extends Application {
 
-    public static int globalPortNumber = 12005;
+    // public static volatile int globalPortNumber = 12005;
 
-    ArrayList<HostFile> ourFiles = new ArrayList<HostFile>();
+    // ArrayList<HostFile> ourFiles = new ArrayList<HostFile>();
     boolean connected;
     String serverHostName = new String();
     String hostName = new String();
+    String myHostServerThreadPort;
     int port1;
-    int myHostServerThreadPort;
     // boolean isOpen = true;
     // boolean clientgo = true;
     // boolean notEnd = true;
 
-    Scene scene = new Scene(new Group(), 900, 500, Color.SKYBLUE);
+    Scene scene = new Scene(new Group(), 900, 550, Color.SKYBLUE);
     Group root = (Group) scene.getRoot();
 
     Label serverHostNameLabel = new Label("Server Hostname: ");
@@ -43,6 +43,7 @@ public class FTPHost extends Application {
     Label speedLabel = new Label("Speed: ");
     Label searchLabel = new Label("Search: ");
     Label commandLabel = new Label("Enter Command: ");
+    Label myHostServerPortLabel = new Label("Your hosting port: ");
 
     TextField serverHostNameTextField = new TextField();
     TextField portTextField = new TextField();
@@ -50,6 +51,7 @@ public class FTPHost extends Application {
     TextField hostNameTextField = new TextField();
     TextField searchTextField = new TextField();
     TextField commandTextField = new TextField();
+    TextField myHostServerPortTextField = new TextField();
 
     ChoiceBox<String> speedChoice = new ChoiceBox<String>();
 
@@ -69,7 +71,8 @@ public class FTPHost extends Application {
 
     public void handleConnectAction(ActionEvent event) {
         try {
-            myHostServerThreadPort = ++globalPortNumber;
+            // myHostServerThreadPort = ++globalPortNumber;
+            myHostServerThreadPort = myHostServerPortTextField.getText();
             serverHostName = serverHostNameTextField.getText();
             hostName = hostNameTextField.getText();
             String username = userNameTextField.getText();
@@ -232,19 +235,22 @@ public class FTPHost extends Application {
         grid.add(hostNameLabel, 2, 1);
         grid.add(hostNameTextField, 3, 1);
 
-        grid.add(connectButton, 1, 2);
-        grid.add(speedLabel, 2, 2);
-        grid.add(speedChoice, 3, 2);
+        grid.add(myHostServerPortLabel, 2, 2);
+        grid.add(myHostServerPortTextField, 3, 2);
 
-        grid.add(searchLabel, 0, 3);
-        grid.add(searchTextField, 1, 3);
-        grid.add(searchButton, 2, 3);
-        grid.add(searchResultsTextArea, 3, 3);
+        grid.add(connectButton, 1, 3);
+        grid.add(speedLabel, 2, 3);
+        grid.add(speedChoice, 3, 3);
 
-        grid.add(commandLabel, 0, 4);
-        grid.add(commandTextField, 1, 4);
-        grid.add(runCommandButton, 2, 4);
-        grid.add(commandResultsTextArea, 3, 4);
+        grid.add(searchLabel, 0, 4);
+        grid.add(searchTextField, 1, 4);
+        grid.add(searchButton, 2, 4);
+        grid.add(searchResultsTextArea, 3, 4);
+
+        grid.add(commandLabel, 0, 5);
+        grid.add(commandTextField, 1, 5);
+        grid.add(runCommandButton, 2, 5);
+        grid.add(commandResultsTextArea, 3, 5);
 
         root.getChildren().add(grid);
         primaryStage.setScene(scene);
