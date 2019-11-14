@@ -22,7 +22,7 @@ public class ServerWorkerThread implements Runnable {
     String speed;
     ArrayList<String> searchResults = new ArrayList<String>();
     boolean threadNotDone = true;
-    HostFile file;
+    ArrayList<HostFile> listfiles = new ArrayList<HostFile>();
 
     ServerWorkerThread(Socket connectionSocket, ArrayList<HostConnection> listHosts) {
         this.connectionSocket = connectionSocket;
@@ -155,22 +155,27 @@ public class ServerWorkerThread implements Runnable {
                             System.out.println("Inside loop thru xml");
                             Node node = nList.item(temp);
                             //System.out.println("");
+                            // System.out.println(node.getNodeType());
+                            // System.out.println(Node.ELEMENT_NODE);
                             if (node.getNodeType() == Node.ELEMENT_NODE)
                             {
                                 //Get each file name and description
                                 Element eElement = (Element) node;
                                 String name = eElement.getElementsByTagName("name").item(0).getTextContent();
                                 String fileDesc = eElement.getElementsByTagName("description").item(0).getTextContent();
-
+                                System.out.println(fileDesc);
                                 //Parse description into array of strings
                                 String[] fileDescArr = fileDesc.split("\\W+");
-
+                                System.out.println(fileDescArr[0]);
                                 //Turn string array into arraylist
-                                ArrayList<String> fileDescArrLst = new ArrayList<String>();
-                                fileDescArrLst = (ArrayList<String>) Arrays.asList(fileDescArr);
-
+                                List l = Arrays.asList(fileDescArr);
+                                ArrayList<String> fileDescArrLst = new ArrayList<String>(l);
+                                // ArrayList<String> fileDescArrLst = new ArrayList<String>();
+                                // fileDescArrLst = (ArrayList<String>) Arrays.asList(fileDescArr);
+                                
                                 //Create file object
-                                file = new HostFile(name, username, fileDescArrLst);
+                                HostFile file = new HostFile(name, username, fileDescArrLst);
+                                listfiles.add(file);
                                 System.out.println("file uploaded");
                                 System.out.println(file.getName());
                                 //If files are new to server, add to file list
@@ -211,7 +216,7 @@ public class ServerWorkerThread implements Runnable {
 //                        }
                         dataSocket.close();
                         //Delete temp file
-                        File file = new File("./"+fileName);
+                        //File file = new File("./"+fileName);
                     } catch (Exception e) {
 
                     }
