@@ -108,6 +108,11 @@ public class FTPHost extends Application {
                 in.close();
             }
             connected = true;
+
+            //Start server thread
+            //HostServer hostThread = new HostServer(Integer.parseInt(myHostServerThreadPort));
+            //hostThread.run();
+
             ControlSocket.close();
         } catch (Exception e) {
             commandResultsTextArea.setText("Something went wrong");
