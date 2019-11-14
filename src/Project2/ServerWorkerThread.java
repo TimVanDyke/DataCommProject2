@@ -22,6 +22,7 @@ public class ServerWorkerThread implements Runnable {
     String speed;
     ArrayList<String> searchResults = new ArrayList<String>();
     boolean threadNotDone = true;
+    HostFile file;
 
     ServerWorkerThread(Socket connectionSocket, ArrayList<HostConnection> listHosts) {
         this.connectionSocket = connectionSocket;
@@ -111,22 +112,24 @@ public class ServerWorkerThread implements Runnable {
                 }
                 if (clientCommand.equals("upload")) {
                     try {
+                        System.out.println("upload");
                         Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
                         DataInputStream inData = new DataInputStream(
                                 new BufferedInputStream(dataSocket.getInputStream()));
                         // Get filename as the next token after upload. Should be <hostname>.xml;
                         String fileName = tokens.nextToken();
-                        fileName = "tmp_" + fileName;
+                        System.out.println(fileName);
+                        //fileName = "tmp_" + fileName;
                         // Receive file
-                        OutputStream fileOut = new FileOutputStream("./"+fileName);
-                        byte[] bytes = new byte[16 * 1024];
-                        int count;
+                        // OutputStream fileOut = new FileOutputStream("./"+fileName);
+                        // byte[] bytes = new byte[16 * 1024];
+                        // int count;
 
-                        // Write data to file
-                        while ((count = inData.read(bytes)) > 0) {
-                            fileOut.write(bytes, 0, count);
-                        }
-                        fileOut.close();
+                        // // Write data to file
+                        // while ((count = inData.read(bytes)) > 0) {
+                        //     fileOut.write(bytes, 0, count);
+                        // }
+                        // fileOut.close();
 
                         //TODO: Parse the .xml file saved as "tmp_" + fileName
 
@@ -145,11 +148,13 @@ public class ServerWorkerThread implements Runnable {
                         Element root = document.getDocumentElement();
 
                         NodeList nList = document.getElementsByTagName("file");
-
+                        
                         //Loop through XML elements
                         for (int temp = 0; temp < nList.getLength(); temp++)
                         {
+                            System.out.println("Inside loop thru xml");
                             Node node = nList.item(temp);
+                            //System.out.println("");
                             if (node.getNodeType() == Node.ELEMENT_NODE)
                             {
                                 //Get each file name and description
@@ -165,17 +170,18 @@ public class ServerWorkerThread implements Runnable {
                                 fileDescArrLst = (ArrayList<String>) Arrays.asList(fileDescArr);
 
                                 //Create file object
-                                HostFile f = new HostFile(name, username, fileDescArrLst);
-
+                                file = new HostFile(name, username, fileDescArrLst);
+                                System.out.println("file uploaded");
+                                System.out.println(file.getName());
                                 //If files are new to server, add to file list
                                 //TODO: Is this necessary?
-                                for (int i = 0; i < listHosts.size(); i++) {
-                                    if (listHosts.get(i).hostname.equals(c.hostname)
-                                            && listHosts.get(i).username.equals(c.username)) {
-                                        listHosts.get(i).fileList.add(f);
-                                        System.out.println("File uploaded");
-                                    }
-                                 }
+                                // for (int i = 0; i < listHosts.size(); i++) {
+                                //     if (listHosts.get(i).hostname.equals(c.hostname)
+                                //             && listHosts.get(i).username.equals(c.username)) {
+                                //         listHosts.get(i).fileList.add(f);
+                                //         System.out.println("File uploaded");
+                                //     }
+                                //  }
                             }
                         }
 
