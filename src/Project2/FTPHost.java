@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -19,15 +21,17 @@ import javafx.stage.StageStyle;
 
 public class FTPHost extends Application {
 
+    public static int globalPortNumber = 12005;
+
     ArrayList<HostFile> ourFiles = new ArrayList<HostFile>();
     boolean connected;
     String serverHostName = new String();
     String hostName = new String();
     int port1;
-
-    boolean isOpen = true;
-    boolean clientgo = true;
-    boolean notEnd = true;
+    int myHostServerThreadPort;
+    // boolean isOpen = true;
+    // boolean clientgo = true;
+    // boolean notEnd = true;
 
     Scene scene = new Scene(new Group(), 900, 500, Color.SKYBLUE);
     Group root = (Group) scene.getRoot();
@@ -65,21 +69,23 @@ public class FTPHost extends Application {
 
     public void handleConnectAction(ActionEvent event) {
         try {
-            hostName = serverHostNameTextField.getText();
+            myHostServerThreadPort = ++globalPortNumber;
+            serverHostName = serverHostNameTextField.getText();
+            hostName = hostNameTextField.getText();
             String username = userNameTextField.getText();
             port1 = Integer.parseInt(portTextField.getText());
-            notEnd = true;
-            Socket ControlSocket = new Socket(hostName, port1);
+            // notEnd = true;
+            Socket ControlSocket = new Socket(serverHostName, port1);
             DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
-            commandResultsTextArea.setText("You are connected to " + hostName);
+            commandResultsTextArea.setText("You are connected to " + serverHostName);
 
             // filename to store
             String fileName = username + ".xml";
             File toStore = new File("./" + fileName);
 
             outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + hostName + " "
-                    + speedChoice.getValue().toString() + " " + "upload" + " " + username + ".xml" + "\n");
+                    + speedChoice.getValue().toString() + " " + "upload" + " " + username + ".xml" + " " + myHostServerThreadPort + "\n");
             // Check that it is a file
             if (toStore.isFile()) {
                 // Find file length
@@ -109,15 +115,16 @@ public class FTPHost extends Application {
         System.out.println("searching");
         try {
             // StringTokenizer tokens = new StringTokenizer(searchTextField.getText());
-            hostName = serverHostNameTextField.getText();
+            serverHostName = serverHostNameTextField.getText();
             port1 = Integer.parseInt(portTextField.getText());
             String searchWord = searchTextField.getText();
-            Socket ControlSocket = new Socket(hostName, port1);
+            Socket ControlSocket = new Socket(serverHostName, port1);
             DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
             DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
-            outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + hostName + " "
+            outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + this.hostNameTextField.getText() + " "
                     + speedChoice.getValue().toString() + " " + "search" + " " + searchWord + "\n");
             StringBuilder results = new StringBuilder(300);
+            TimeUnit.MILLISECONDS.sleep(500);
             while (inFromServer.available() > 0) {
                 results.append(inFromServer.readUTF());
                 searchResultsTextArea.setText(results.toString());
@@ -136,16 +143,16 @@ public class FTPHost extends Application {
 
             try {
                 int port = port1 + 2;
-                Socket ControlSocket = new Socket(hostName, port1);
+                Socket ControlSocket = new Socket(serverHostName, port1);
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
                 DataInputStream inFromServer = new DataInputStream(
                         new BufferedInputStream(ControlSocket.getInputStream()));
 
-                outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + hostName + " "
+                outToServer.writeBytes(userNameTextField.getText() + " " + port1 + " " + serverHostName + " "
                         + (String) speedChoice.getValue() + " " + "quit" + "\n");
 
-                isOpen = false;
-                clientgo = false;
+                // isOpen = false;
+                // clientgo = false;
                 ControlSocket.close();
                 commandResultsTextArea.setText("You have been disconnected from the server");
                 connected = false;
@@ -162,7 +169,7 @@ public class FTPHost extends Application {
                 Socket dataSocket = welcomeData.accept();
                 DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
                 DataOutputStream outData = new DataOutputStream(dataSocket.getOutputStream());
-                outData.writeBytes(userNameTextField.getText() + " " + port1 + " " + hostName + " "
+                outData.writeBytes(userNameTextField.getText() + " " + port1 + " " + serverHostName + " "
                         + (String) speedChoice.getValue() + " " + "retr" + "\n");
                 // Parse filename from command, send it to server
                 String fileName = "FIXME WE DON't NEED THIS ANYMORE";
