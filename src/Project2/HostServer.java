@@ -12,6 +12,7 @@ public class HostServer implements Runnable {
         this.userName = userName;
     }
 
+    
 
     @Override
     public void run() {
@@ -26,13 +27,19 @@ public class HostServer implements Runnable {
 
         while (true) {
             try {
+                System.out.println("Doesn't happen all the time");
                 HostServerThread hostWorkerThread = new HostServerThread(welcomeSocket.accept(), userName);
                 System.out.println("accepted socket");
                 Thread thread = new Thread(hostWorkerThread);
                 thread.start();
                 System.out.println("started hostWorkerThread");
+                if (Thread.interrupted()) {
+                    System.out.println("hmmmmmmmmm");
+                    return;
+                }
             } catch (Exception e) {
-                e.printStackTrace();//TODO: handle exception
+                
+                break; //e.printStackTrace();
             }
         }
     }

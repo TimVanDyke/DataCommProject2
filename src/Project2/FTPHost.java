@@ -31,6 +31,7 @@ public class FTPHost extends Application {
     Socket clientControlSocket;
     int port1;
     boolean clientConnected = false;
+    Thread thread;
 
     Scene scene = new Scene(new Group(), 900, 550, Color.SKYBLUE);
     Group root = (Group) scene.getRoot();
@@ -111,7 +112,7 @@ public class FTPHost extends Application {
 
             // Start server thread
             HostServer ftpServer = new HostServer(Integer.parseInt(myHostServerThreadPort), username);
-            Thread thread = new Thread(ftpServer);
+            thread = new Thread(ftpServer);
             thread.start();
 
             System.out.println("FTP Server Opened");
@@ -161,6 +162,7 @@ public class FTPHost extends Application {
                     outToServer.writeUTF(port + " quit");
                     clientConnected = false;
                     clientControlSocket.close();
+                    thread.interrupt();
                 } catch (Exception e) {
                     commandResultsTextArea.appendText("\nSomething went wrong.");
                 }
@@ -183,48 +185,53 @@ public class FTPHost extends Application {
             }
         }
         if (command.compareTo("retr") == 0) {
-            try {
-                username = userNameTextField.getText();
-                serverHostName = serverHostNameTextField.getText();
-                port1 = Integer.parseInt(portTextField.getText());
-                String fileName = tokens.nextToken();
-                Socket ControlSocket = new Socket(serverHostName, port1);
-                DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
-                // write out so server filename and port we open serversocket on
-                int portToReceiveFile = (Integer.parseInt(myHostServerThreadPort) + 1);
-                System.out.println(fileName + " " + portToReceiveFile);
-                outToServer.writeBytes(fileName + " " + portToReceiveFile + "\n");
-                // new serversocket
-                ServerSocket fileListenerSocket = new ServerSocket(portToReceiveFile);
-                // accept dataSocket through fileListenerSocket
-                Socket fileListenerDataSocket = fileListenerSocket.accept();
-                // make Streams to get file on
-                DataInputStream fileIn = new DataInputStream(
-                        new BufferedInputStream(fileListenerDataSocket.getInputStream()));
-                // check to make sure we have file
-                boolean fileExists = (fileIn.readUTF().compareTo("200") == 0);
-                // get the file
-                if (fileExists) {
-                    // Receive file // filePath: 
-                    System.out.println("./" + username + "/" + fileName);
-                    OutputStream fileOut = new FileOutputStream("./" + username + "/" + fileName);
-                    byte[] bytes = new byte[16 * 1024];
-                    int count;
-                    while ((count = fileIn.read(bytes)) > 0) {
-                        fileOut.write(bytes, 0, count);
+            if (!portTextField.getText().equals("12000")) {
+                try {
+                    username = userNameTextField.getText();
+                    serverHostName = serverHostNameTextField.getText();
+                    port1 = Integer.parseInt(portTextField.getText());
+                    String fileName = tokens.nextToken();
+                    Socket ControlSocket = new Socket(serverHostName, port1);
+                    DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
+                    // write out so server filename and port we open serversocket on
+                    int portToReceiveFile = (Integer.parseInt(myHostServerThreadPort) + 1);
+                    System.out.println(fileName + " " + portToReceiveFile);
+                    outToServer.writeBytes(fileName + " " + portToReceiveFile + "\n");
+                    // new serversocket
+                    ServerSocket fileListenerSocket = new ServerSocket(portToReceiveFile);
+                    // accept dataSocket through fileListenerSocket
+                    Socket fileListenerDataSocket = fileListenerSocket.accept();
+                    // make Streams to get file on
+                    DataInputStream fileIn = new DataInputStream(
+                            new BufferedInputStream(fileListenerDataSocket.getInputStream()));
+                    // check to make sure we have file
+                    boolean fileExists = (fileIn.readUTF().compareTo("200") == 0);
+                    // get the file
+                    if (fileExists) {
+                        // Receive file // filePath: 
+                        System.out.println("./" + username + "/" + fileName);
+                        OutputStream fileOut = new FileOutputStream("./" + username + "/" + fileName);
+                        byte[] bytes = new byte[16 * 1024];
+                        int count;
+                        while ((count = fileIn.read(bytes)) > 0) {
+                            fileOut.write(bytes, 0, count);
+                        }
+                        fileOut.close();
+                    } else {
+                        ControlSocket.close();
+                        fileListenerSocket.close();
+                        throw new Exception("File not found");
                     }
-                    fileOut.close();
-                } else {
+                    // finish stuff that we're done with
+                    commandResultsTextArea.setText("File " + fileName + " received");
                     ControlSocket.close();
                     fileListenerSocket.close();
-                    throw new Exception("File not found");
+                } catch (Exception e) {
+                    commandResultsTextArea.setText("Something went wrong");
                 }
-                // finish stuff that we're done with
-                commandResultsTextArea.setText("File " + fileName + " received");
-                ControlSocket.close();
-                fileListenerSocket.close();
-            } catch (Exception e) {
-                commandResultsTextArea.setText("Something went wrong");
+            }
+            else {
+                commandResultsTextArea.appendText("\nPlease change your port");
             }
         }
     }
@@ -238,6 +245,7 @@ public class FTPHost extends Application {
         portTextField.setText("12000");
         userNameTextField.setText("vinay");
         hostNameTextField.setText("DCCLIENT/localhost");
+        myHostServerPortTextField.setText("12005");
 
         speedChoice.getItems().add("Ethernet");
         speedChoice.getItems().add("T1");
