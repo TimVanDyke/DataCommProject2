@@ -2,35 +2,35 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class HostServer{
+public class HostServer implements Runnable {
 
-//    //public void run() throws RuntimeException {
-//        //try {
-//        public static void main(String args[]) throws IOException{
-//            ServerSocket welcomeSocket = new ServerSocket(12000);
-//            while (true) {
-//                HostServerThread workerThread = new HostServerThread(welcomeSocket.accept());
-//                Thread thread = new Thread(workerThread);
-//                thread.start();
-//            }
-//        // } catch (Exception e) {
-//
-//        // }
-//        }
+    public int serverPort;
+    public String userName;
 
-        public int serverPort;
-        public String userName;
+    public HostServer(int serverPort, String userName) {
+        this.serverPort = serverPort;
+        this.userName = userName;
+    }
 
-        public HostServer(int serverPort, String userName){
-            this.serverPort = serverPort;
-            this.userName = userName;
+
+    @Override
+    public void run() {
+        ServerSocket welcomeSocket = null;
+        try {
+            welcomeSocket = new ServerSocket(serverPort);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
         }
 
-        public void run() throws  IOException {
-            ServerSocket welcomeSocket = new ServerSocket(serverPort);
-            HostServerThread workerThread = new HostServerThread(welcomeSocket.accept(), userName);
-            Thread thread = new Thread(workerThread);
-            thread.start();
-
+        while (true) {
+            try {
+                HostServerThread hostWorkerThread = new HostServerThread(welcomeSocket.accept(), userName);
+                Thread thread = new Thread(hostWorkerThread);
+                thread.start();
+            } catch (Exception e) {
+                e.printStackTrace();//TODO: handle exception
+            }
         }
     }
+}

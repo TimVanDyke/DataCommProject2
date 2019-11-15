@@ -116,7 +116,8 @@ public class FTPHost extends Application {
 
             //Start server thread
             HostServer ftpServer = new HostServer(Integer.parseInt(myHostServerThreadPort), username);
-            ftpServer.run();
+            Thread thread = new Thread(ftpServer);
+            thread.start();
 
             System.out.println("FTP Server Opened");
             ControlSocket.close();
