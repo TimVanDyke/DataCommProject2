@@ -18,16 +18,19 @@ public class HostServer implements Runnable {
         ServerSocket welcomeSocket = null;
         try {
             welcomeSocket = new ServerSocket(serverPort);
+            System.out.println("created Server Socket");
         }
         catch(Exception e) {
-            e.printStackTrace();
+                e.printStackTrace();
         }
 
         while (true) {
             try {
                 HostServerThread hostWorkerThread = new HostServerThread(welcomeSocket.accept(), userName);
+                System.out.println("accepted socket");
                 Thread thread = new Thread(hostWorkerThread);
                 thread.start();
+                System.out.println("started hostWorkerThread");
             } catch (Exception e) {
                 e.printStackTrace();//TODO: handle exception
             }
